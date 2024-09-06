@@ -5,7 +5,16 @@ import asyncio
 import requests 
 
 
-CHANNEL_ID = 1273968538302025792
+CHANNEL_ID = Channelid
+
+quotes = [
+    "Земля — наш общий дом. Давайте заботиться о ней вместе.",
+    "Изменения начинаются с каждого из нас.",
+    "Маленькие шаги могут привести к большим переменам.",
+    "Тот, кто заботится об экологии, заботится о будущем.",
+    "Каждый день — шанс сделать мир лучше."
+]
+
 sovety = [
     "Используйте многоразовые сумки вместо пластиковых.",
     "Экономьте воду: выключайте кран, пока чистите зубы.",
@@ -36,6 +45,24 @@ facts = [
     "Каждый год в океан попадает около 8 миллионов тонн пластика."
 ]
 
+eco_questions = [
+    {
+        "question": "Сколько лет разлагается пластиковая бутылка?",
+        "options": ["50 лет", "100 лет", "450 лет", "1000 лет"],
+        "answer": 3
+    },
+    {
+        "question": "Какое дерево наиболее эффективно поглощает углекислый газ?",
+        "options": ["Береза", "Дуб", "Тополь", "Ель"],
+        "answer": 2
+    },
+    {
+        "question": "Какой процент мирового мусора составляют пластиковые отходы?",
+        "options": ["10%", "30%", "50%", "70%"],
+        "answer": 2
+    }
+]
+
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='/', intents=intents)
@@ -55,6 +82,34 @@ async def fact(ctx):
      fact = random.choice(facts)
      await ctx.send(fact)
 
+@bot.command(name='quote')
+async def quote(ctx):
+    quote = random.choice(quotes)
+    await ctx.send(quote)
+
+@bot.command(name='quiz')
+async def quiz(ctx):
+    question_data = random.choice(eco_questions)
+    question = question_data["question"]
+    options = question_data["options"]
+    correct_answer = question_data["answer"]
+    options_str = "\n".join([f"{i+1}. {option}" for i, option in enumerate(options)])
+    await ctx.send(f"{question}\n{options_str}")
+
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel and m.content.isdigit()
+
+    try:
+        guess_msg = await bot.wait_for('message', check=check)
+        guess = int(guess_msg.content)
+
+        if guess == correct_answer:
+            await ctx.send("Правильно! Отлично справился!")
+        else:
+            await ctx.send(f"Неверно. Правильный ответ: {options[correct_answer-1]}")
+    except asyncio.TimeoutError:
+        await ctx.send("Время вышло! Попробуй снова.")
+
 
 @tasks.loop(seconds=3600)
 async def send_random_napominania():
@@ -70,4 +125,4 @@ async def send_random_napominania():
 
         
 
-bot.run('-')
+bot.run('token)
